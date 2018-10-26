@@ -1,27 +1,27 @@
 #include "Python.h"
 
-#define MEOW_HASH_256
-#define MEOW_HASH_512
+#include <intrin.h>
+
 #include "meow_hash.h"
 
-struct MeowHashObject {
+typedef struct {
   PyObject_HEAD;
   meow_state state;
   int block_size;
-};
+} MeowHashObject;
 
 static PyObject *meowhash_new(PyTypeObject *type, PyObject *args,
                               PyObject *kwds) {
   int *block_size;
-  unsigned long long seed;
-  if (!PyArg_ParseTuple(args, "i|K", block_size, seed) {
+  unsigned long long *seed;
+  if (!PyArg_ParseTuple(args, "i|K", block_size, seed)) {
     return NULL;
   }
 
   MeowHashObject *self;
   OBJECT_INIT(self);
-  self->block_size = arg.block_size;
-  MeowStateInit(&self->state, arg.seed);
+  self->block_size = *block_size;
+  MeowStateInit(&self->state, *seed);
   return (PyObject *)self;
 }
 
@@ -34,15 +34,15 @@ static PyObject *meowhash_hash(PyObject *args) {
   }
 
   meow_lane lane;
-  switch (block_size) {
+  switch (*block_size) {
     case 128:
-      lane = MeowHash1(*seed, block->len, block->buf);
+      lane = MeowHash1(seed, block->len, block->buf);
       break;
     case 256:
-      lane = MeowHash2(*seed, block->len, block->buf);
+      lane = MeowHash2(seed, block->len, block->buf);
       break;
     case 512:
-      lane = MeowHash5(*seed, block->len, block->buf);
+      lane = MeowHash4(seed, block->len, block->buf);
       break;
     default:
       return NULL;
@@ -65,7 +65,7 @@ static PyObject *meowhash_update(MeowHashObject *self, PyObject *args) {
       MeowHash2Update(&self->state, block->len, block->buf);
       break;
     case 512:
-      MeowHash5Update(&self->state, block->len, block->buf);
+      MeowHash4Update(&self->state, block->len, block->buf);
       break;
     default:
       return NULL;
@@ -84,7 +84,7 @@ static PyObject *meowhash_digest(MeowHashObject *self, PyObject *args) {
       lane = MeowHash2Flush(self->state);
       break;
     case 512:
-      lane = MeowHash5Flush(self->state);
+      lane = MeowHash4Flush(self->state);
       break;
     default:
       return NULL;
