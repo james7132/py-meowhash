@@ -1,13 +1,17 @@
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 with open('README.md', 'r') as f:
   long_description = f.read()
 
 meow_ext = Extension(
-    'cpython',
-    define_macros=[('MEOW_HASH_256', '1'), ('MEOW_HASH_512', '1')],
+    'meowhash.cpython',
+    # define_macros=[('MEOW_HASH_256', '0'), ('MEOW_HASH_512', '0')],
     sources=['meowhash/cpython.c'],
-    extra_compile_args=['-mavx2'],
+    extra_compile_args=['-mavx512f', '-mavx512vl', '-maes',
+                        '-mavx512f', '-mavx512pf', '-mavx512er', '-mavx512cd',
+                        '-mavx512vl', '-mavx512bw', '-mavx512dq', '-mavx512ifma',
+                        '-mavx512vbmi'
+                        ],
     include_dirs=['lib'])
 
 setup(
@@ -35,5 +39,4 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
-    exa_package='meowhash',
     ext_modules=[meow_ext])
